@@ -22,27 +22,25 @@ def rand(a , b):
 class NeuralNetwork:
     def __init__(self, ni, nh, no):
         # number of input, hidden, and output nodes
-        self.ni = ni + 1 # +1 for bias node
+        self.ni = ni + 1 # add a bias node
         self.nh = nh
         self.no = no
 
-        # activations for nodes
+        # activation
         self.ai = [1.0]*self.ni
         self.ah = [1.0]*self.nh
         self.ao = [1.0]*self.no
         
-        # create weights
+        # weight
         self.wi = make_matrix(self.ni, self.nh)
         self.wo = make_matrix(self.nh, self.no)
-        # set them to random vaules
         for i in range(self.ni):
             for j in range(self.nh):
                 self.wi[i][j] = rand(-2.0, 2.0)
         for j in range(self.nh):
             for k in range(self.no):
                 self.wo[j][k] = rand(-2.0, 2.0)
-
-        # last change in weights for momentum   
+ 
         self.ci = make_matrix(self.ni, self.nh)
         self.co = make_matrix(self.nh, self.no)
 
@@ -50,19 +48,19 @@ class NeuralNetwork:
         if len(inputs) != self.ni-1:
             raise ValueError, 'wrong number of inputs'
 
-        # input activations
+        #input activation
         for i in range(self.ni-1):
             #self.ai[i] = 1.0/(1.0+math.exp(-inputs[i]))
             self.ai[i] = inputs[i]
 
-        # hidden activations
+        #hiddin activation
         for j in range(self.nh):
             sum = 0.0
             for i in range(self.ni):
                 sum = sum + self.ai[i] * self.wi[i][j]
             self.ah[j] = 1.0/(1.0+math.exp(-sum))
 
-        # output activations
+        #output activations
         for k in range(self.no):
             sum = 0.0
             for j in range(self.nh):
@@ -76,13 +74,13 @@ class NeuralNetwork:
         if len(targets) != self.no:
             raise ValueError, 'wrong number of target values'
 
-        # calculate error terms for output
+        #output error
         output_deltas = [0.0] * self.no
         for k in range(self.no):
             ao = self.ao[k]
             output_deltas[k] = ao*(1-ao)*(targets[k]-ao)
 
-        # calculate error terms for hidden
+        # hidden error
         hidden_deltas = [0.0] * self.nh
         for j in range(self.nh):
             sum = 0.0
@@ -128,22 +126,22 @@ class NeuralNetwork:
             for j in range(self.nh):
                 print self.wo[j]
 
-    def train(self, patterns, iterations=2000, N=0.5, M=0.1):
-        # N: learning rate
-        # M: momentum factor
+    def train(self, patterns, iterations=2000, LR=0.5, MF=0.1):
+        # LR: learning rate
+        # MF: momentum factor
         for i in xrange(iterations):
             error = 0.0
             for p in patterns:
                 inputs = p[0]
                 targets = p[1]
                 self.update(inputs)
-                error = error + self.backPropagate(targets, N, M)
+                error = error + self.backPropagate(targets, LR, MF)
             if PRINT_IT and i % 100 == 0:
                 print 'error', error
 
 
 def demo():
-    # Teach network XOR function
+    # Teach network XOR
     pat = [
         [[0,0], [0]],
         [[0,1], [1]],
@@ -151,9 +149,7 @@ def demo():
         [[1,1], [0]]
     ]
 
-    # create a network with two input, two hidden, and two output nodes
-    n = NN(2, 3, 1)
-    # train it with some patterns
+    # create a network
+    n = NeuralNetwork(2, 3, 1)
     n.train(pat, 2000)
-    # test it
     n.test(pat)
